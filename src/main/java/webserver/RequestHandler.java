@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,19 +36,16 @@ public class RequestHandler extends Thread {
 			String line = br.readLine();
 			
 			log.debug("request line : {}", line);
+			String[] tmp = line.split(" ");
 			String rootFilePath = System.getProperty("user.dir");
-			String indexPath = rootFilePath +"\\webapp\\index.html";
-			FileReader reader =new FileReader(indexPath);
-			System.out.println(reader.toString());
-//			if( line.contains("index")) {
-//				
-//			}
+			String htmlPath = rootFilePath +"\\webapp" + tmp[1];
 			while( !line.equals("") ) {
 				line = br.readLine();
 				log.debug("header : {} ", line);
 			}
 			DataOutputStream dos = new DataOutputStream(out);
 			byte[] body = "Hello World".getBytes();
+			body = Files.readAllBytes(new File(htmlPath).toPath());
 			response200Header(dos, body.length);
 			responseBody(dos, body);
 		} catch (IOException e) {
