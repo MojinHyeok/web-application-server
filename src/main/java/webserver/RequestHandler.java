@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import util.HttpRequestUtils;
+
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -27,6 +29,10 @@ public class RequestHandler extends Thread {
 		log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
 				connection.getPort());
 
+		/*
+		 * InputStream 서버의 입장에서 클라이언트가 전송하는 데이터는 InputStream을 활용하여 읽을 수 있습니다.
+		 * OutputStream 서버가 클라이언트에게 전송해야하는 데이터들을 OutputStream을 활용하여 전달합니다.
+		 */
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 			/**
 			 * 요구사항 1처리 InputStream은 처리가 힘드니 BufferedReader로 바꿔서 처리
@@ -34,18 +40,13 @@ public class RequestHandler extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 			// 테스트용도로 찍어보자~!
 			String line = br.readLine();
-			
+		
 			log.debug("request line : {}", line);
-			String[] tmp = line.split(" ");
-			String rootFilePath = System.getProperty("user.dir");
-			String htmlPath = rootFilePath +"\\webapp" + tmp[1];
-			while( !line.equals("") ) {
-				line = br.readLine();
-				log.debug("header : {} ", line);
-			}
+			
+			String url = HttpRequestUtils.getURl(line);
+			
 			DataOutputStream dos = new DataOutputStream(out);
-			byte[] body = "Hello World".getBytes();
-			body = Files.readAllBytes(new File(htmlPath).toPath());
+			byte[] body = Files.readAllBytes(new File("./webapp"+ url).toPath());
 			response200Header(dos, body.length);
 			responseBody(dos, body);
 		} catch (IOException e) {
