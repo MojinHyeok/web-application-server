@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import model.User;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -43,14 +45,23 @@ public class RequestHandler extends Thread {
 			// 테스트용도로 찍어보자~!
 			String line = br.readLine();
 			log.debug("request line : {}", line);
-			
 			String url = HttpRequestUtils.getURl(line);
+			Map<String, String> headers = new HashMap<String, String>();
+			while( !"".equals(line) ) {
+				log.debug("header : {}", line);
+				line =br.readLine();
+				String[] headerTokens = line.split(": ");
+				if(headerTokens.length ==2) {
+					
+					headers.put(headerTokens[0], headerTokens[1]);
+				}
+			}
+			
 			if(url.startsWith("/user/create")) {
 				
-				int index = url.indexOf("?");
-				String requestPath = url.substring(0, index);
-				String queryString = url.substring(index + 1);
-				Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
+				String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
+				log.debug("Request Body : {}",requestBody);
+				Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
 				User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
 				log.debug("User  : {} ",user);
 				
