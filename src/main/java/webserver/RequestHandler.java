@@ -10,10 +10,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import model.User;
 import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
@@ -40,10 +42,20 @@ public class RequestHandler extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 			// 테스트용도로 찍어보자~!
 			String line = br.readLine();
-		
 			log.debug("request line : {}", line);
 			
 			String url = HttpRequestUtils.getURl(line);
+			if(url.startsWith("/user/create")) {
+				
+				int index = url.indexOf("?");
+				String requestPath = url.substring(0, index);
+				String queryString = url.substring(index + 1);
+				Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
+				User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
+				log.debug("User  : {} ",user);
+				
+				url = "/index.html";
+			}
 			
 			DataOutputStream dos = new DataOutputStream(out);
 			byte[] body = Files.readAllBytes(new File("./webapp"+ url).toPath());
