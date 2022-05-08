@@ -64,14 +64,30 @@ public class RequestHandler extends Thread {
 				Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
 				User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
 				log.debug("User  : {} ",user);
+
+				DataOutputStream dos = new DataOutputStream(out);
+				response302Header(dos);
+			} else {
 				
-				url = "/index.html";
+				DataOutputStream dos = new DataOutputStream(out);
+				byte[] body = Files.readAllBytes(new File("./webapp"+ url).toPath());
+				response200Header(dos, body.length);
+				responseBody(dos, body);
 			}
-			
-			DataOutputStream dos = new DataOutputStream(out);
-			byte[] body = Files.readAllBytes(new File("./webapp"+ url).toPath());
-			response200Header(dos, body.length);
-			responseBody(dos, body);
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	
+	/*
+	 * 302의 경우 특정url로 이동시키기 때문에 바디정보나 이런것들은 별로 필요로 하지 않습니다.
+	 * 특정 url정보만 필요로 함.
+	 */
+	private void response302Header(DataOutputStream dos) {
+		try {
+			dos.writeBytes("HTTP/1.1 302 Found \r\n");
+			dos.writeBytes("Location : /index.html\r\n");
+			dos.writeBytes("\r\n");
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
